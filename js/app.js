@@ -25,7 +25,8 @@
 
   const STORE_KEYS = {
     favorites: "ominhub_favorites_v1",
-    history: "ominhub_history_v1"
+    history: "ominhub_history_v1",
+    uploaded: "ominhub_uploaded_v1"
   };
 
   // ============================
@@ -39,7 +40,7 @@
     BASE_PATH + "/assets/thumbs/t5.jpg",
     BASE_PATH + "/assets/thumbs/t6.jpg"
   ];
-  const VIDEO_SRC = BASE_PATH + "/assets/videos/sample.mp4";
+  const VIDEO_SRC = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   const CATEGORIES = ["Recommended", "Trending", "Gaming", "Music", "Tech", "Lifestyle"];
   const TAGS = ["4K", "60fps", "Atmospheric", "Study", "Relax", "Deep Focus", "Loop"];
 
@@ -215,7 +216,48 @@
       "Creator": "Creator",
       "My channel": "Mi canal",
       "Admin panel": "Panel de admin",
-      "Profile": "Perfil"
+      "Profile": "Perfil",
+      "Featured videos": "Videos destacados",
+      "Curated sessions to keep your viewers engaged. Scroll or change page to explore more.": "Sesiones seleccionadas para mantener a tus espectadores interesados. Desplázate o cambia de página para explorar más.",
+      "Browse by category": "Explorar por categoría",
+      "Click a category to filter the catalog. Use the pagination to move between pages of results.": "Haz clic en una categoría para filtrar el catálogo. Usa la paginación para moverte entre las páginas de resultados.",
+      "Popular tags": "Etiquetas populares",
+      "Select a tag to see all the sessions that use it.": "Selecciona una etiqueta para ver todas las sesiones que la usan.",
+      "Type a keyword and press Enter to filter videos by title, category or tags.": "Escribe una palabra clave y presiona Enter para filtrar videos por título, categoría o etiquetas.",
+      "All the videos you have marked with the heart will appear here.": "Todos los videos que has marcado con el corazón aparecerán aquí.",
+      "You have no favorites yet. Click the heart on any video to add it.": "Aún no tienes favoritos. Haz clic en el corazón de cualquier video para agregarlo.",
+      "Watch history": "Historial de reproducciones",
+      "This is a local demo history stored only in your browser.": "Este es un historial de demostración local almacenado solo en tu navegador.",
+      "You have not watched any sessions yet. Pick something from Home!": "Aún no has visto ninguna sesión. ¡Elige algo de la página de inicio!",
+      "My playlists": "Mis playlists",
+      "Create manual collections of videos. This is a visual demo — backend logic is not implemented.": "Crea colecciones manuales de videos. Esta es una demostración visual, la lógica del backend no está implementada.",
+      "Create a new playlist": "Crear una nueva playlist",
+      "Give your playlist a name and short description.": "Dale a tu playlist un nombre y una descripción corta.",
+      "Name": "Nombre",
+      "Description": "Descripción",
+      "Save demo playlist": "Guardar playlist de demostración",
+      "Creator studio": "Estudio de creación",
+      "Upload and manage your content. For this demo we only show the interface.": "Sube y gestiona tu contenido. Para esta demostración, solo mostramos la interfaz.",
+      "Upload a new video": "Subir un nuevo video",
+      "Title": "Título",
+      "Video file": "Archivo de video",
+      "Upload video": "Subir video",
+      "My videos": "Mis videos",
+      "You have not uploaded any videos yet.": "Aún no has subido ningún video.",
+      "Admin dashboard": "Panel de administración",
+      "A compact control panel to moderate videos and manage the catalog (demo only).": "Un panel de control compacto para moderar videos y gestionar el catálogo (solo demostración).",
+      "This page represents the viewer account in this demo.": "Esta página representa la cuenta del espectador en esta demostración.",
+      "Use any credentials. This form is only for UI demonstration.": "Usa cualquier credencial. Este formulario es solo para demostración de la interfaz de usuario.",
+      "Create account": "Crear cuenta",
+      "Fill out the fields below. Data is not sent anywhere in this demo.": "Completa los campos a continuación. Los datos no se envían a ninguna parte en esta demostración.",
+      "Select a video from Home, Categories or Search to start watching.": "Selecciona un video de Inicio, Categorías o Búsqueda para comenzar a ver.",
+      "More like this": "Más como esto",
+      "Featured videos": "Videos destacados",
+      "Like": "Me gusta",
+      "Dislike": "No me gusta",
+      "Share": "Compartir",
+      "Welcome": "Bienvenido",
+      "Log out": "Cerrar sesión"
     }
   };
 
@@ -254,7 +296,7 @@
       langSelect.value = currentLang;
       langSelect.addEventListener("change", (e) => {
         setStored("ominhub_lang", e.target.value);
-        translateUI(e.target.value);
+        window.location.reload();
       });
     }
 
@@ -471,8 +513,8 @@
   function renderHome(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Featured videos</h1>',
-      '  <p class="section-subtitle">Curated sessions to keep your viewers engaged. Scroll or change page to explore more.</p>',
+      '  <h1 class="section-title" data-translate="Featured videos">Featured videos</h1>',
+      '  <p class="section-subtitle" data-translate="Curated sessions to keep your viewers engaged. Scroll or change page to explore more.">Curated sessions to keep your viewers engaged. Scroll or change page to explore more.</p>',
       '  <div id="home-grid" class="video-grid"></div>',
       '  <div id="home-pagination" class="pagination"></div>',
       "</section>"
@@ -487,8 +529,8 @@
   function renderCategories(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Browse by category</h1>',
-      '  <p class="section-subtitle">Click a category to filter the catalog. Use the pagination to move between pages of results.</p>',
+      '  <h1 class="section-title" data-translate="Browse by category">Browse by category</h1>',
+      '  <p class="section-subtitle" data-translate="Click a category to filter the catalog. Use the pagination to move between pages of results.">Click a category to filter the catalog. Use the pagination to move between pages of results.</p>',
       '  <div id="cat-filters" class="chip-filter-row"></div>',
       '  <div id="cat-grid" class="video-grid"></div>',
       '  <div id="cat-pagination" class="pagination"></div>',
@@ -524,8 +566,8 @@
   function renderTags(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Popular tags</h1>',
-      '  <p class="section-subtitle">Select a tag to see all the sessions that use it.</p>',
+      '  <h1 class="section-title" data-translate="Popular tags">Popular tags</h1>',
+      '  <p class="section-subtitle" data-translate="Select a tag to see all the sessions that use it.">Select a tag to see all the sessions that use it.</p>',
       '  <div id="tag-filters" class="chip-filter-row"></div>',
       '  <div id="tag-grid" class="video-grid"></div>',
       '  <div id="tag-pagination" class="pagination"></div>',
@@ -563,8 +605,8 @@
     const q = (params.get("q") || "").trim();
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Search</h1>',
-      '  <p class="section-subtitle">Type a keyword and press Enter to filter videos by title, category or tags.</p>',
+      '  <h1 class="section-title" data-translate="Search">Search</h1>',
+      '  <p class="section-subtitle" data-translate="Type a keyword and press Enter to filter videos by title, category or tags.">Type a keyword and press Enter to filter videos by title, category or tags.</p>',
       '  <form class="search-bar" id="page-search-form" style="max-width:480px;margin-bottom:14px;">',
       '    <input type="text" id="page-search-input" placeholder="Search in OMINHUB..." value="' + escapeHtml(q) + '" />',
       '    <button type="submit">Search</button>',
@@ -611,8 +653,8 @@
     const favIds = getStored(STORE_KEYS.favorites, []);
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Favorites</h1>',
-      '  <p class="section-subtitle">All the videos you have marked with the heart will appear here.</p>',
+      '  <h1 class="section-title" data-translate="Favorites">Favorites</h1>',
+      '  <p class="section-subtitle" data-translate="All the videos you have marked with the heart will appear here.">All the videos you have marked with the heart will appear here.</p>',
       '  <div id="fav-grid" class="video-grid"></div>',
       '  <div id="fav-pagination" class="pagination"></div>',
       "</section>"
@@ -626,7 +668,7 @@
       .filter(Boolean);
 
     if (!favVideos.length) {
-      grid.innerHTML = '<div class="empty-state">You have no favorites yet. Click the heart on any video to add it.</div>';
+      grid.innerHTML = '<div class="empty-state" data-translate="You have no favorites yet. Click the heart on any video to add it.">You have no favorites yet. Click the heart on any video to add it.</div>';
       pag.innerHTML = "";
       return;
     }
@@ -638,8 +680,8 @@
     const historyRaw = getStored(STORE_KEYS.history, []);
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Watch history</h1>',
-      '  <p class="section-subtitle">This is a local demo history stored only in your browser.</p>',
+      '  <h1 class="section-title" data-translate="Watch history">Watch history</h1>',
+      '  <p class="section-subtitle" data-translate="This is a local demo history stored only in your browser.">This is a local demo history stored only in your browser.</p>',
       '  <div id="hist-grid" class="video-grid"></div>',
       "</section>"
     ].join("");
@@ -647,7 +689,7 @@
     const grid = document.getElementById("hist-grid");
 
     if (!historyRaw.length) {
-      grid.innerHTML = '<div class="empty-state">You have not watched any sessions yet. Pick something from Home!</div>';
+      grid.innerHTML = '<div class="empty-state" data-translate="You have not watched any sessions yet. Pick something from Home!">You have not watched any sessions yet. Pick something from Home!</div>';
       return;
     }
 
@@ -662,20 +704,20 @@
   function renderPlaylist(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">My playlists</h1>',
-      '  <p class="section-subtitle">Create manual collections of videos. This is a visual demo — backend logic is not implemented.</p>',
+      '  <h1 class="section-title" data-translate="My playlists">My playlists</h1>',
+      '  <p class="section-subtitle" data-translate="Create manual collections of videos. This is a visual demo — backend logic is not implemented.">Create manual collections of videos. This is a visual demo — backend logic is not implemented.</p>',
       '  <div class="form-card">',
-      '    <h1>Create a new playlist</h1>',
-      '    <p>Give your playlist a name and short description.</p>',
+      '    <h1 data-translate="Create a new playlist">Create a new playlist</h1>',
+      '    <p data-translate="Give your playlist a name and short description.">Give your playlist a name and short description.</p>',
       '    <div class="form-field">',
-      '      <label for="pl-name">Name</label>',
+      '      <label for="pl-name" data-translate="Name">Name</label>',
       '      <input id="pl-name" type="text" placeholder="Night coding set" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="pl-desc">Description</label>',
+      '      <label for="pl-desc" data-translate="Description">Description</label>',
       '      <input id="pl-desc" type="text" placeholder="Deep focus 4K walks for late sessions" />',
       "    </div>",
-      '    <button class="nav-button" type="button" id="pl-save-btn">Save demo playlist</button>',
+      '    <button class="nav-button" type="button" id="pl-save-btn" data-translate="Save demo playlist">Save demo playlist</button>',
       '    <div class="form-footer" id="pl-info"></div>',
       "  </div>",
       "</section>"
@@ -693,26 +735,26 @@
   function renderChannel(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Creator studio</h1>',
-      '  <p class="section-subtitle">Upload and manage your content. For this demo we only show the interface.</p>',
+      '  <h1 class="section-title" data-translate="Creator studio">Creator studio</h1>',
+      '  <p class="section-subtitle" data-translate="Upload and manage your content. For this demo we only show the interface.">Upload and manage your content. For this demo we only show the interface.</p>',
       '  <div class="form-card">',
-      '    <h1>Upload a new video</h1>',
+      '    <h1 data-translate="Upload a new video">Upload a new video</h1>',
       '    <div class="form-field">',
-      '      <label for="up-title">Title</label>',
+      '      <label for="up-title" data-translate="Title">Title</label>',
       '      <input id="up-title" type="text" placeholder="Forest walk in 4K" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="up-description">Description</label>',
+      '      <label for="up-description" data-translate="Description">Description</label>',
       '      <textarea id="up-description" placeholder="A relaxing walk through a forest in stunning 4K resolution."></textarea>',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="up-file">Video file</label>',
+      '      <label for="up-file" data-translate="Video file">Video file</label>',
       '      <input id="up-file" type="file" />',
       "    </div>",
-      '    <button class="nav-button" type="button" id="up-btn">Upload video</button>',
+      '    <button class="nav-button" type="button" id="up-btn" data-translate="Upload video">Upload video</button>',
       '    <div class="form-footer" id="up-info"></div>',
       "  </div>",
-      '  <h2 class="section-title">My videos</h2>',
+      '  <h2 class="section-title" data-translate="My videos">My videos</h2>',
       '  <div id="my-videos" class="video-grid"></div>',
       "</section>"
     ].join("");
@@ -726,20 +768,27 @@
         const file = document.getElementById("up-file").files[0];
 
         if (title && description && file) {
-          const newVideo = {
-            id: String(VIDEOS.length + 1),
-            title: title,
-            description: description,
-            category: "Uploaded",
-            duration: "0:00",
-            views: 0,
-            thumb: URL.createObjectURL(file),
-            src: URL.createObjectURL(file),
-            tags: ["Uploaded"]
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            const newVideo = {
+              id: String(VIDEOS.length + 1),
+              title: title,
+              description: description,
+              category: "Uploaded",
+              duration: "0:00",
+              views: 0,
+              thumb: event.target.result,
+              src: event.target.result,
+              tags: ["Uploaded"]
+            };
+            const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
+            uploadedVideos.unshift(newVideo);
+            setStored(STORE_KEYS.uploaded, uploadedVideos);
+            VIDEOS.unshift(newVideo);
+            renderMyVideos();
+            info.textContent = "Video uploaded successfully!";
           };
-          VIDEOS.unshift(newVideo);
-          renderMyVideos();
-          info.textContent = "Video uploaded successfully!";
+          reader.readAsDataURL(file);
         } else {
           info.textContent = "Please fill out all fields.";
         }
@@ -757,7 +806,7 @@
         myVideosContainer.innerHTML = "";
         myVideos.forEach(v => myVideosContainer.appendChild(createVideoCard(v)));
       } else {
-        myVideosContainer.innerHTML = '<div class="empty-state">You have not uploaded any videos yet.</div>';
+        myVideosContainer.innerHTML = '<div class="empty-state" data-translate="You have not uploaded any videos yet.">You have not uploaded any videos yet.</div>';
       }
     }
   }
@@ -765,8 +814,8 @@
   function renderAdmin(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Admin dashboard</h1>',
-      '  <p class="section-subtitle">A compact control panel to moderate videos and manage the catalog (demo only).</p>',
+      '  <h1 class="section-title" data-translate="Admin dashboard">Admin dashboard</h1>',
+      '  <p class="section-subtitle" data-translate="A compact control panel to moderate videos and manage the catalog (demo only).">A compact control panel to moderate videos and manage the catalog (demo only).</p>',
       '  <div class="video-grid">',
       '    <div class="video-card">',
       '      <div class="video-body">',
@@ -796,8 +845,8 @@
   function renderProfile(main) {
     main.innerHTML = [
       '<section class="section">',
-      '  <h1 class="section-title">Profile</h1>',
-      '  <p class="section-subtitle">This page represents the viewer account in this demo.</p>',
+      '  <h1 class="section-title" data-translate="Profile">Profile</h1>',
+      '  <p class="section-subtitle" data-translate="This page represents the viewer account in this demo.">This page represents the viewer account in this demo.</p>',
       '  <div class="form-card">',
       '    <h1>Demo User</h1>',
       '    <p>Email: demo@ominhub.local</p>',
@@ -828,8 +877,8 @@
     main.innerHTML = [
       '<section class="section">',
       '  <div class="form-card">',
-      '    <h1>Log in</h1>',
-      '    <p>Use any credentials. This form is only for UI demonstration.</p>',
+      '    <h1 data-translate="Log in">Log in</h1>',
+      '    <p data-translate="Use any credentials. This form is only for UI demonstration.">Use any credentials. This form is only for UI demonstration.</p>',
       '    <div class="form-field">',
       '      <label for="lg-email">Email</label>',
       '      <input id="lg-email" type="email" placeholder="you@example.com" />',
@@ -857,8 +906,8 @@
     main.innerHTML = [
       '<section class="section">',
       '  <div class="form-card">',
-      '    <h1>Create account</h1>',
-      '    <p>Fill out the fields below. Data is not sent anywhere in this demo.</p>',
+      '    <h1 data-translate="Create account">Create account</h1>',
+      '    <p data-translate="Fill out the fields below. Data is not sent anywhere in this demo.">Fill out the fields below. Data is not sent anywhere in this demo.</p>',
       '    <div class="form-field">',
       '      <label for="rg-name">Name</label>',
       '      <input id="rg-name" type="text" placeholder="Your name" />',
@@ -914,16 +963,16 @@
       '    <div class="watch-meta">' + escapeHtml(video.category) + " · " + formatViews(video.views) + " views</div>",
       '    <div class="watch-actions">',
       '      <div class="watch-feedback">',
-      '        <button class="btn-pill" id="like-btn">Like</button>',
-      '        <button class="btn-pill" id="dislike-btn">Dislike</button>',
+      '        <button class="btn-pill" id="like-btn" data-translate="Like">Like</button>',
+      '        <button class="btn-pill" id="dislike-btn" data-translate="Dislike">Dislike</button>',
       '      </div>',
       '      <div class="watch-share">',
-      '        <button class="btn-pill" id="share-btn">Share</button>',
+      '        <button class="btn-pill" id="share-btn" data-translate="Share">Share</button>',
       '      </div>',
       "    </div>",
       "  </div>",
       '  <div>',
-      '    <div class="aside-heading">Featured videos</div>',
+      '    <div class="aside-heading" data-translate="Featured videos">Featured videos</div>',
       '    <div id="watch-related" class="video-grid"></div>',
       "  </div>",
       "</section>"
@@ -953,6 +1002,9 @@
   // Boot
   // ============================
   function init() {
+    const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
+    VIDEOS.unshift(...uploadedVideos);
+
     buildShell();
     updateUserActions();
     const main = document.getElementById("main-content");
