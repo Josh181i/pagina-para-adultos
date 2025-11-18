@@ -68,9 +68,13 @@
           ],
           channelName: "Channel " + c,
           channelAvatar: "https://i.pravatar.cc/40?u=" + idCounter,
+          subscribers: 1000 * c + 2500,
           likes: Math.floor(views / 100),
           dislikes: Math.floor(views / 1000),
-          comments: []
+          comments: [
+            { author: "User1", text: "Great video!", avatar: "https://i.pravatar.cc/40?u=101" },
+            { author: "User2", text: "I love this channel.", avatar: "https://i.pravatar.cc/40?u=102" }
+          ]
         });
         idCounter++;
       }
@@ -262,7 +266,15 @@
       "Dislike": "No me gusta",
       "Share": "Compartir",
       "Welcome": "Bienvenido",
-      "Log out": "Cerrar sesión"
+      "Log out": "Cerrar sesión",
+      "Subscribed": "Suscrito",
+      "Subscribe": "Suscribirse",
+      "Comments": "Comentarios",
+      "Related videos": "Videos relacionados",
+      "Add a comment...": "Añade un comentario...",
+      "Comment": "Comentar",
+      "No comments yet.": "Aún no hay comentarios.",
+      "Please log in to manage your channel.": "Por favor, inicia sesión para gestionar tu canal."
     }
   };
 
@@ -273,14 +285,14 @@
     if (userActions) {
       if (user) {
         userActions.innerHTML = `
-          <span class="nav-link">Welcome, ${user.name}</span>
-          <button class="nav-button" id="logout-btn">Log out</button>
+          <span class="nav-link" data-translate="Welcome">Welcome</span>, ${user.name}
+          <button class="nav-button" id="logout-btn" data-translate="Log out">Log out</button>
         `;
         const logoutBtn = document.getElementById("logout-btn");
         if (logoutBtn) {
           logoutBtn.addEventListener("click", () => {
             setStored("ominhub_user", null);
-            window.location.href = resolveHref("home");
+            window.location.reload();
           });
         }
       } else {
@@ -288,8 +300,9 @@
           <button class="nav-button" data-nav="login" data-translate="Log in">Log in</button>
           <button class="nav-button nav-button-outline" data-nav="register" data-translate="Sign up">Sign up</button>
         `;
-        wireNavigation();
       }
+      wireNavigation();
+      translateUI(getStored("ominhub_lang", "en"));
     }
   }
 
@@ -736,83 +749,102 @@
   }
 
   function renderChannel(main) {
-    main.innerHTML = [
-      '<section class="section">',
-      '  <h1 class="section-title" data-translate="Creator studio">Creator studio</h1>',
-      '  <p class="section-subtitle" data-translate="Upload and manage your content. For this demo we only show the interface.">Upload and manage your content. For this demo we only show the interface.</p>',
-      '  <div class="form-card">',
-      '    <h1 data-translate="Upload a new video">Upload a new video</h1>',
-      '    <div class="form-field">',
-      '      <label for="up-title" data-translate="Title">Title</label>',
-      '      <input id="up-title" type="text" placeholder="Forest walk in 4K" />',
-      "    </div>",
-      '    <div class="form-field">',
-      '      <label for="up-description" data-translate="Description">Description</label>',
-      '      <textarea id="up-description" placeholder="A relaxing walk through a forest in stunning 4K resolution."></textarea>',
-      "    </div>",
-      '    <div class="form-field">',
-      '      <label for="up-file" data-translate="Video file">Video file</label>',
-      '      <input id="up-file" type="file" />',
-      "    </div>",
-      '    <button class="nav-button" type="button" id="up-btn" data-translate="Upload video">Upload video</button>',
-      '    <div class="form-footer" id="up-info"></div>',
-      "  </div>",
-      '  <h2 class="section-title" data-translate="My videos">My videos</h2>',
-      '  <div id="my-videos" class="video-grid"></div>',
-      "</section>"
-    ].join("");
+    const user = getStored("ominhub_user", null);
+
+    if (!user) {
+      main.innerHTML = `
+        <section class="section">
+          <div class="empty-state">Please <a data-nav="login">log in</a> to manage your channel.</div>
+        </section>
+      `;
+      wireNavigation();
+      return;
+    }
+
+    main.innerHTML = `
+      <section class="section">
+        <h1 class="section-title" data-translate="Creator studio">Creator studio</h1>
+        <p class="section-subtitle" data-translate="Upload and manage your content. For this demo we only show the interface.">Upload and manage your content. For this demo we only show the interface.</p>
+        <div class="form-card">
+          <h1 data-translate="Upload a new video">Upload a new video</h1>
+          <div class="form-field">
+            <label for="up-title" data-translate="Title">Title</label>
+            <input id="up-title" type="text" placeholder="Forest walk in 4K" />
+          </div>
+          <div class="form-field">
+            <label for="up-description" data-translate="Description">Description</label>
+            <textarea id="up-description" placeholder="A relaxing walk through a forest..."></textarea>
+          </div>
+          <div class="form-field">
+            <label for="up-file" data-translate="Video file">Video file</label>
+            <input id="up-file" type="file" accept="video/*" />
+          </div>
+          <button class="nav-button" type="button" id="up-btn" data-translate="Upload video">Upload video</button>
+          <div class="form-footer" id="up-info"></div>
+        </div>
+        <h2 class="section-title" data-translate="My videos">My videos</h2>
+        <div id="my-videos" class="video-grid"></div>
+      </section>
+    `;
 
     const btn = document.getElementById("up-btn");
     const info = document.getElementById("up-info");
+    const myVideosContainer = document.getElementById("my-videos");
+
+    function renderMyVideos() {
+      const uploadedVideos = getStored(STORE_KEYS.uploaded, []).filter(v => v.channelName === user.name);
+      myVideosContainer.innerHTML = "";
+      if (uploadedVideos.length) {
+        uploadedVideos.forEach(v => myVideosContainer.appendChild(createVideoCard(v)));
+      } else {
+        myVideosContainer.innerHTML = `<div class="empty-state" data-translate="You have not uploaded any videos yet.">You have not uploaded any videos yet.</div>`;
+      }
+      translateUI(getStored("ominhub_lang", "en"));
+    }
+
     if (btn && info) {
       btn.addEventListener("click", () => {
-        const title = document.getElementById("up-title").value;
-        const description = document.getElementById("up-description").value;
+        const title = document.getElementById("up-title").value.trim();
+        const description = document.getElementById("up-description").value.trim();
         const file = document.getElementById("up-file").files[0];
 
         if (title && description && file) {
           const reader = new FileReader();
           reader.onload = function (event) {
             const newVideo = {
-              id: String(VIDEOS.length + 1),
+              id: "up_" + Date.now(),
               title: title,
               description: description,
               category: "Uploaded",
-              duration: "0:00",
+              duration: "N/A",
               views: 0,
-              thumb: event.target.result,
+              thumb: BASE_PATH + "/assets/thumbs/t6.jpg", // Placeholder thumb
               src: event.target.result,
-              tags: ["Uploaded"]
+              tags: ["Uploaded", "User Content"],
+              channelName: user.name,
+              channelAvatar: "https://i.pravatar.cc/40?u=" + user.name,
+              subscribers: 0,
+              likes: 0,
+              dislikes: 0,
+              comments: []
             };
-            const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
-            uploadedVideos.unshift(newVideo);
-            setStored(STORE_KEYS.uploaded, uploadedVideos);
+            const allUploaded = getStored(STORE_KEYS.uploaded, []);
+            allUploaded.unshift(newVideo);
+            setStored(STORE_KEYS.uploaded, allUploaded);
             VIDEOS.unshift(newVideo);
             renderMyVideos();
             info.textContent = "Video uploaded successfully!";
           };
           reader.readAsDataURL(file);
         } else {
-          info.textContent = "Please fill out all fields.";
+          info.textContent = "Please fill all fields.";
         }
       });
     }
+
     renderMyVideos();
   }
 
-  function renderMyVideos() {
-    const myVideosContainer = document.getElementById("my-videos");
-    const myVideos = VIDEOS.filter(v => v.category === "Uploaded");
-
-    if (myVideosContainer) {
-      if (myVideos.length > 0) {
-        myVideosContainer.innerHTML = "";
-        myVideos.forEach(v => myVideosContainer.appendChild(createVideoCard(v)));
-      } else {
-        myVideosContainer.innerHTML = '<div class="empty-state" data-translate="You have not uploaded any videos yet.">You have not uploaded any videos yet.</div>';
-      }
-    }
-  }
 
   function renderAdmin(main) {
     main.innerHTML = [
@@ -877,30 +909,35 @@
   }
 
   function renderLogin(main) {
-    main.innerHTML = [
-      '<section class="section">',
-      '  <div class="form-card">',
-      '    <h1 data-translate="Log in">Log in</h1>',
-      '    <p data-translate="Use any credentials. This form is only for UI demonstration.">Use any credentials. This form is only for UI demonstration.</p>',
-      '    <div class="form-field">',
-      '      <label for="lg-email">Email</label>',
-      '      <input id="lg-email" type="email" placeholder="you@example.com" />',
-      "    </div>",
-      '    <div class="form-field">',
-      '      <label for="lg-pass">Password</label>',
-      '      <input id="lg-pass" type="password" placeholder="••••••••" />',
-      "    </div>",
-      '    <button class="nav-button" type="button" id="lg-btn">Sign in</button>',
-      '    <div class="form-footer" id="lg-info">No real authentication is performed.</div>',
-      "  </div>",
-      "</section>"
-    ].join("");
+    main.innerHTML = `
+      <section class="section">
+        <div class="form-card">
+          <h1 data-translate="Log in">Log in</h1>
+          <p data-translate="Use any credentials. This form is only for UI demonstration.">Use any credentials. This form is only for UI demonstration.</p>
+          <div class="form-field">
+            <label for="lg-email">Email</label>
+            <input id="lg-email" type="email" placeholder="you@example.com" value="demo@ominhub.tv" />
+          </div>
+          <div class="form-field">
+            <label for="lg-pass">Password</label>
+            <input id="lg-pass" type="password" placeholder="••••••••" value="1234" />
+          </div>
+          <button class="nav-button" type="button" id="lg-btn">Sign in</button>
+          <div class="form-footer" id="lg-info">No real authentication is performed.</div>
+        </div>
+      </section>
+    `;
 
     const btn = document.getElementById("lg-btn");
-    if (btn) {
+    const emailInput = document.getElementById("lg-email");
+    if (btn && emailInput) {
       btn.addEventListener("click", () => {
-        setStored("ominhub_user", { name: "Demo User" });
-        window.location.href = resolveHref("home");
+        const email = emailInput.value.trim();
+        if (email) {
+          const name = email.split("@")[0];
+          setStored("ominhub_user", { name: name });
+          window.location.href = resolveHref("home");
+        }
       });
     }
   }
@@ -952,57 +989,61 @@
     const video = id ? getVideoById(id) : null;
 
     if (!video) {
-      main.innerHTML = '<div class="empty-state">Select a video from Home, Categories or Search to start watching.</div>';
+      main.innerHTML = '<div class="empty-state" data-translate="Select a video from Home, Categories or Search to start watching.">Select a video from Home, Categories or Search to start watching.</div>';
       return;
     }
 
     pushHistory(video.id);
 
-    main.innerHTML = [
-      '<section class="section watch-layout">',
-      '  <div class="watch-player">',
-      '    <video controls autoplay src="' + video.src + '"></video>',
-      '    <div class="watch-title">' + escapeHtml(video.title) + "</div>",
-      '    <div class="watch-meta">' + escapeHtml(video.category) + " · " + formatViews(video.views) + " views</div>",
-      '    <div class="watch-actions">',
-      '      <div class="watch-feedback">',
-      '        <button class="btn-pill" id="like-btn" data-translate="Like">Like</button>',
-      '        <span id="like-count">' + video.likes + '</span>',
-      '        <button class="btn-pill" id="dislike-btn" data-translate="Dislike">Dislike</button>',
-      '        <span id="dislike-count">' + video.dislikes + '</span>',
-      '      </div>',
-      '      <div class="watch-share">',
-      '        <button class="btn-pill" id="share-btn" data-translate="Share">Share</button>',
-      '      </div>',
-      "    </div>",
-      '    <div class="watch-channel">',
-      '      <img src="' + video.channelAvatar + '" alt="' + video.channelName + '" class="channel-avatar">',
-      '      <div class="channel-info">',
-      '        <div class="channel-name">' + video.channelName + '</div>',
-      '        <button class="btn-pill" id="subscribe-btn">Subscribe</button>',
-      '        <button class="icon-button" id="bell-btn">&#128276;</button>',
-      '      </div>',
-      '    </div>',
-      '    <div class="comments-section">',
-      '      <h2 class="section-title" data-translate="Comments">Comments (<span id="comment-count">' + video.comments.length + '</span>)</h2>',
-      '      <div class="comment-form">',
-      '        <textarea id="comment-input" placeholder="Add a comment..."></textarea>',
-      '        <button class="btn-pill" id="comment-btn">Comment</button>',
-      '      </div>',
-      '      <div id="comment-list" class="comment-list"></div>',
-      '    </div>',
-      "  </div>",
-      '  <div>',
-      '    <div class="aside-heading" data-translate="Featured videos">Featured videos</div>',
-      '    <div id="watch-related" class="video-grid"></div>',
-      "  </div>",
-      "</section>"
-    ].join("");
+    main.innerHTML = `
+      <section class="section watch-layout">
+        <div class="watch-main-col">
+          <div class="watch-player-wrapper">
+            <video controls autoplay src="${video.src}" class="watch-player"></video>
+          </div>
+          <h1 class="watch-title">${escapeHtml(video.title)}</h1>
+          <div class="watch-meta-bar">
+            <div class="watch-channel-info">
+              <img src="${video.channelAvatar}" alt="${escapeHtml(video.channelName)}" class="watch-channel-avatar">
+              <div>
+                <div class="watch-channel-name">${escapeHtml(video.channelName)}</div>
+                <div class="watch-channel-subs">${formatViews(video.subscribers)} subscribers</div>
+              </div>
+              <button class="nav-button" id="subscribe-btn">Subscribe</button>
+              <button class="icon-button" id="bell-btn">&#128276;</button>
+            </div>
+            <div class="watch-actions-group">
+              <button class="btn-pill" id="like-btn">
+                &#128077; <span id="like-count">${formatViews(video.likes)}</span>
+              </button>
+              <button class="btn-pill" id="dislike-btn">
+                &#128078; <span id="dislike-count">${formatViews(video.dislikes)}</span>
+              </button>
+              <button class="btn-pill" id="share-btn">&#128256; Share</button>
+            </div>
+          </div>
+          <div class="watch-description">
+            <strong>${formatViews(video.views)} views</strong> · <span>${escapeHtml(video.category)}</span>
+            <p>${escapeHtml(video.description || "No description available.")}</p>
+          </div>
+          <div class="comments-section">
+            <h2 class="section-title">Comments (<span id="comment-count">${video.comments.length}</span>)</h2>
+            <div class="comment-form">
+              <textarea id="comment-input" placeholder="Add a comment..."></textarea>
+              <button class="nav-button" id="comment-btn">Comment</button>
+            </div>
+            <div id="comment-list" class="comment-list"></div>
+          </div>
+        </div>
+        <div class="watch-related-col">
+          <h2 class="aside-heading">Related videos</h2>
+          <div id="watch-related" class="video-grid-related"></div>
+        </div>
+      </section>
+    `;
 
     const relatedContainer = document.getElementById("watch-related");
-    const related = VIDEOS
-      .filter(v => v.category === video.category && v.id !== video.id)
-      .slice(0, 6);
+    const related = VIDEOS.filter(v => v.category === video.category && v.id !== video.id).slice(0, 10);
     related.forEach(v => relatedContainer.appendChild(createVideoCard(v)));
 
     const likeBtn = document.getElementById("like-btn");
@@ -1012,42 +1053,36 @@
     const commentBtn = document.getElementById("comment-btn");
     const commentInput = document.getElementById("comment-input");
     const commentList = document.getElementById("comment-list");
-    const likeCount = document.getElementById("like-count");
-    const dislikeCount = document.getElementById("dislike-count");
-    const commentCount = document.getElementById("comment-count");
+    const likeCountEl = document.getElementById("like-count");
+    const dislikeCountEl = document.getElementById("dislike-count");
+    const commentCountEl = document.getElementById("comment-count");
 
     likeBtn.addEventListener("click", () => {
       video.likes++;
-      likeCount.textContent = video.likes;
-      likeBtn.classList.add("btn-pill-primary");
-      dislikeBtn.classList.remove("btn-pill-primary");
+      likeCountEl.textContent = formatViews(video.likes);
     });
 
     dislikeBtn.addEventListener("click", () => {
       video.dislikes++;
-      dislikeCount.textContent = video.dislikes;
-      dislikeBtn.classList.add("btn-pill-primary");
-      likeBtn.classList.remove("btn-pill-primary");
+      dislikeCountEl.textContent = formatViews(video.dislikes);
     });
 
     subscribeBtn.addEventListener("click", () => {
-      subscribeBtn.classList.toggle("btn-pill-primary");
-    });
-
-    bellBtn.addEventListener("click", () => {
-      bellBtn.classList.toggle("btn-pill-primary");
+      subscribeBtn.classList.toggle("subscribed");
+      subscribeBtn.textContent = subscribeBtn.classList.contains("subscribed") ? "Subscribed" : "Subscribe";
     });
 
     commentBtn.addEventListener("click", () => {
-      const commentText = commentInput.value;
+      const commentText = commentInput.value.trim();
       if (commentText) {
         const newComment = {
           author: "Demo User",
-          text: commentText
+          text: commentText,
+          avatar: "https://i.pravatar.cc/40?u=99"
         };
         video.comments.unshift(newComment);
         renderComments(video.comments, commentList);
-        commentCount.textContent = video.comments.length;
+        commentCountEl.textContent = video.comments.length;
         commentInput.value = "";
       }
     });
@@ -1057,12 +1092,19 @@
 
   function renderComments(comments, container) {
     container.innerHTML = "";
+    if (!comments || !comments.length) {
+      container.innerHTML = `<div class="empty-state">No comments yet.</div>`;
+      return;
+    }
     comments.forEach(comment => {
       const commentEl = document.createElement("div");
       commentEl.className = "comment-item";
       commentEl.innerHTML = `
-        <div class="comment-meta">${comment.author}</div>
-        <div class="comment-text">${escapeHtml(comment.text)}</div>
+        <img src="${comment.avatar}" alt="${escapeHtml(comment.author)}" class="comment-avatar">
+        <div>
+          <div class="comment-author">${escapeHtml(comment.author)}</div>
+          <div class="comment-text">${escapeHtml(comment.text)}</div>
+        </div>
       `;
       container.appendChild(commentEl);
     });
@@ -1072,11 +1114,11 @@
   // Boot
   // ============================
   function init() {
-    const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
-    VIDEOS.unshift(...uploadedVideos);
-
     buildShell();
     updateUserActions();
+
+    const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
+    VIDEOS.unshift(...uploadedVideos);
     const main = document.getElementById("main-content");
     const page = getCurrentPageKey();
 
