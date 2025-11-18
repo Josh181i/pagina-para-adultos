@@ -163,11 +163,6 @@ img{
   position:relative;
   transition: all 0.3s ease-in-out;
 }
-.sidebar.collapsed{
-  width: 0;
-  padding: 0;
-  overflow: hidden;
-}
 
 .sidebar-logo-mini{
   display:none;
@@ -586,6 +581,26 @@ img{
   font-size:11px;
 }
 
+.watch-channel{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.channel-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+}
+.channel-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.channel-name{
+  font-weight:600;
+}
+
 /* Comments */
 .comments-section{
   margin-top:10px;
@@ -649,6 +664,11 @@ img{
   backdrop-filter:blur(4px);
   display:none;
   z-index:25;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+body.sidebar-open .sidebar-overlay{
+  opacity: 1;
 }
 
 body.sidebar-open .sidebar-overlay{

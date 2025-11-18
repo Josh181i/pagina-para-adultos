@@ -65,7 +65,12 @@
           tags: [
             TAGS[(i + c) % TAGS.length],
             TAGS[(i + c + 2) % TAGS.length]
-          ]
+          ],
+          channelName: "Channel " + c,
+          channelAvatar: "https://i.pravatar.cc/40?u=" + idCounter,
+          likes: Math.floor(views / 100),
+          dislikes: Math.floor(views / 1000),
+          comments: []
         });
         idCounter++;
       }
@@ -335,11 +340,9 @@
   function wireSidebar() {
     const toggle = document.querySelector("[data-sidebar-toggle]");
     const overlay = document.querySelector("[data-sidebar-close]");
-    const sidebar = document.querySelector(".sidebar");
     if (toggle) {
       toggle.addEventListener("click", () => {
         document.body.classList.toggle("sidebar-open");
-        sidebar.classList.toggle("collapsed");
       });
     }
     if (overlay) {
@@ -964,12 +967,30 @@
       '    <div class="watch-actions">',
       '      <div class="watch-feedback">',
       '        <button class="btn-pill" id="like-btn" data-translate="Like">Like</button>',
+      '        <span id="like-count">' + video.likes + '</span>',
       '        <button class="btn-pill" id="dislike-btn" data-translate="Dislike">Dislike</button>',
+      '        <span id="dislike-count">' + video.dislikes + '</span>',
       '      </div>',
       '      <div class="watch-share">',
       '        <button class="btn-pill" id="share-btn" data-translate="Share">Share</button>',
       '      </div>',
       "    </div>",
+      '    <div class="watch-channel">',
+      '      <img src="' + video.channelAvatar + '" alt="' + video.channelName + '" class="channel-avatar">',
+      '      <div class="channel-info">',
+      '        <div class="channel-name">' + video.channelName + '</div>',
+      '        <button class="btn-pill" id="subscribe-btn">Subscribe</button>',
+      '        <button class="icon-button" id="bell-btn">&#128276;</button>',
+      '      </div>',
+      '    </div>',
+      '    <div class="comments-section">',
+      '      <h2 class="section-title" data-translate="Comments">Comments (<span id="comment-count">' + video.comments.length + '</span>)</h2>',
+      '      <div class="comment-form">',
+      '        <textarea id="comment-input" placeholder="Add a comment..."></textarea>',
+      '        <button class="btn-pill" id="comment-btn">Comment</button>',
+      '      </div>',
+      '      <div id="comment-list" class="comment-list"></div>',
+      '    </div>',
       "  </div>",
       '  <div>',
       '    <div class="aside-heading" data-translate="Featured videos">Featured videos</div>',
@@ -986,15 +1007,64 @@
 
     const likeBtn = document.getElementById("like-btn");
     const dislikeBtn = document.getElementById("dislike-btn");
+    const subscribeBtn = document.getElementById("subscribe-btn");
+    const bellBtn = document.getElementById("bell-btn");
+    const commentBtn = document.getElementById("comment-btn");
+    const commentInput = document.getElementById("comment-input");
+    const commentList = document.getElementById("comment-list");
+    const likeCount = document.getElementById("like-count");
+    const dislikeCount = document.getElementById("dislike-count");
+    const commentCount = document.getElementById("comment-count");
 
     likeBtn.addEventListener("click", () => {
-      likeBtn.classList.toggle("btn-pill-primary");
+      video.likes++;
+      likeCount.textContent = video.likes;
+      likeBtn.classList.add("btn-pill-primary");
       dislikeBtn.classList.remove("btn-pill-primary");
     });
 
     dislikeBtn.addEventListener("click", () => {
-      dislikeBtn.classList.toggle("btn-pill-primary");
+      video.dislikes++;
+      dislikeCount.textContent = video.dislikes;
+      dislikeBtn.classList.add("btn-pill-primary");
       likeBtn.classList.remove("btn-pill-primary");
+    });
+
+    subscribeBtn.addEventListener("click", () => {
+      subscribeBtn.classList.toggle("btn-pill-primary");
+    });
+
+    bellBtn.addEventListener("click", () => {
+      bellBtn.classList.toggle("btn-pill-primary");
+    });
+
+    commentBtn.addEventListener("click", () => {
+      const commentText = commentInput.value;
+      if (commentText) {
+        const newComment = {
+          author: "Demo User",
+          text: commentText
+        };
+        video.comments.unshift(newComment);
+        renderComments(video.comments, commentList);
+        commentCount.textContent = video.comments.length;
+        commentInput.value = "";
+      }
+    });
+
+    renderComments(video.comments, commentList);
+  }
+
+  function renderComments(comments, container) {
+    container.innerHTML = "";
+    comments.forEach(comment => {
+      const commentEl = document.createElement("div");
+      commentEl.className = "comment-item";
+      commentEl.innerHTML = `
+        <div class="comment-meta">${comment.author}</div>
+        <div class="comment-text">${escapeHtml(comment.text)}</div>
+      `;
+      container.appendChild(commentEl);
     });
   }
 
