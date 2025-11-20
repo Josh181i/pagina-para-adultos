@@ -912,8 +912,10 @@
     main.innerHTML = `
       <section class="section">
         <div class="form-card">
-          <h1 data-translate="Log in">Log in</h1>
-          <p data-translate="Use any credentials. This form is only for UI demonstration.">Use any credentials. This form is only for UI demonstration.</p>
+          <h1>Iniciar sesión de miembro</h1>
+          <p>Accede a tu cuenta de OMINHUB</p>
+          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#4285F4;">Inicia sesión con Google</button>
+          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#1DA1F2;">Inicia sesión con X</button>
           <div class="form-field">
             <label for="lg-email">Email</label>
             <input id="lg-email" type="email" placeholder="you@example.com" value="demo@ominhub.tv" />
@@ -922,8 +924,10 @@
             <label for="lg-pass">Password</label>
             <input id="lg-pass" type="password" placeholder="••••••••" value="1234" />
           </div>
-          <button class="nav-button" type="button" id="lg-btn">Sign in</button>
-          <div class="form-footer" id="lg-info">No real authentication is performed.</div>
+          <button class="nav-button" type="button" id="lg-btn">Inicia sesión con correo electrónico y contraseña</button>
+          <div class="form-footer">
+            ¿Aún no tienes una cuenta? <a data-nav="register">Registrarse aquí</a>
+          </div>
         </div>
       </section>
     `;
@@ -940,39 +944,50 @@
         }
       });
     }
+    wireNavigation();
   }
 
   function renderRegister(main) {
     main.innerHTML = [
       '<section class="section">',
       '  <div class="form-card">',
-      '    <h1 data-translate="Create account">Create account</h1>',
-      '    <p data-translate="Fill out the fields below. Data is not sent anywhere in this demo.">Fill out the fields below. Data is not sent anywhere in this demo.</p>',
+      '    <h1>Crear cuenta</h1>',
+      '    <p>Únete a OMINHUB y empieza a subir tus videos.</p>',
       '    <div class="form-field">',
-      '      <label for="rg-name">Name</label>',
-      '      <input id="rg-name" type="text" placeholder="Your name" />',
+      '      <label for="rg-name">Nombre de usuario</label>',
+      '      <input id="rg-name" type="text" placeholder="Tu nombre de usuario" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="rg-email">Email</label>',
-      '      <input id="rg-email" type="email" placeholder="you@example.com" />',
+      '      <label for="rg-email">Correo electrónico</label>',
+      '      <input id="rg-email" type="email" placeholder="tu@ejemplo.com" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="rg-pass">Password</label>',
+      '      <label for="rg-pass">Contraseña</label>',
       '      <input id="rg-pass" type="password" placeholder="••••••••" />',
       "    </div>",
-      '    <button class="nav-button" type="button" id="rg-btn">Sign up</button>',
-      '    <div class="form-footer" id="rg-info">By joining you accept our demo terms.</div>',
+      '    <button class="nav-button" type="button" id="rg-btn">Crear cuenta</button>',
+      '    <div class="form-footer">',
+      '      ¿Ya tienes una cuenta? <a data-nav="login">Iniciar sesión</a>',
+      '    </div>',
       "  </div>",
       "</section>"
     ].join("");
 
     const btn = document.getElementById("rg-btn");
-    const info = document.getElementById("rg-info");
-    if (btn && info) {
+    const nameInput = document.getElementById("rg-name");
+    const emailInput = document.getElementById("rg-email");
+
+    if (btn && nameInput && emailInput) {
       btn.addEventListener("click", () => {
-        info.textContent = "Account created (demo only).";
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        if (name && email) {
+          setStored("ominhub_user", { name: name });
+          window.location.href = resolveHref("home");
+        }
       });
     }
+    wireNavigation();
   }
 
   function getCurrentVideoIdFromLocation() {
@@ -1068,6 +1083,11 @@
     });
 
     subscribeBtn.addEventListener("click", () => {
+      const user = getStored("ominhub_user", null);
+      if (!user) {
+        window.location.href = resolveHref("login");
+        return;
+      }
       subscribeBtn.classList.toggle("subscribed");
       subscribeBtn.textContent = subscribeBtn.classList.contains("subscribed") ? "Subscribed" : "Subscribe";
     });

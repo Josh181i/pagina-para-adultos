@@ -231,7 +231,7 @@ body.sidebar-open .sidebar{
 
 .main{
   flex:1;
-  padding:18px 18px 80px 248px;
+  padding:18px 18px 80px;
   max-width:1400px;
   margin:0 auto;
 }
