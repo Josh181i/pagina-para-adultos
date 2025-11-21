@@ -162,12 +162,8 @@ img{
   top: 52px;
   bottom: 0;
   left: 0;
-  transform: translateX(-100%);
   z-index: 30;
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-body.sidebar-open .sidebar{
-  transform: translateX(0);
 }
 
 .sidebar-logo-mini{
@@ -232,8 +228,11 @@ body.sidebar-open .sidebar{
 .main{
   flex:1;
   padding:18px 18px 80px;
-  max-width:1400px;
-  margin:0 auto;
+  margin-left:230px;
+}
+
+.app-shell{
+  display:flex;
 }
 
 .section{

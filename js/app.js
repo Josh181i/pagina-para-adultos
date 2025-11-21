@@ -100,8 +100,8 @@
       case "channel": return BASE_PATH + "/pages/channel/index.html";
       case "tags": return BASE_PATH + "/pages/tags/index.html";
       case "admin": return BASE_PATH + "/pages/admin/index.html";
-      case "login": return BASE_PATH + "/pages/login.html";
-      case "register": return BASE_PATH + "/pages/register.html";
+      case "login": return BASE_PATH + "/pages/login/index.html";
+      case "register": return BASE_PATH + "/pages/register/index.html";
       case "profile": return BASE_PATH + "/pages/profile/index.html";
       case "watch": return BASE_PATH + "/watch.html";
       default: return null;
@@ -940,7 +940,7 @@
         if (email) {
           const name = email.split("@")[0];
           setStored("ominhub_user", { name: name });
-          window.location.href = resolveHref("home");
+          window.location.href = resolveHref("channel");
         }
       });
     }
@@ -983,7 +983,7 @@
         const email = emailInput.value.trim();
         if (name && email) {
           setStored("ominhub_user", { name: name });
-          window.location.href = resolveHref("home");
+          window.location.href = resolveHref("channel");
         }
       });
     }
@@ -1024,7 +1024,7 @@
                 <div class="watch-channel-name">${escapeHtml(video.channelName)}</div>
                 <div class="watch-channel-subs">${formatViews(video.subscribers)} subscribers</div>
               </div>
-              <button class="nav-button" id="subscribe-btn">Subscribe</button>
+              <button class="nav-button" id="subscribe-btn" data-translate="Subscribe">Subscribe</button>
               <button class="icon-button" id="bell-btn">&#128276;</button>
             </div>
             <div class="watch-actions-group">
@@ -1034,7 +1034,7 @@
               <button class="btn-pill" id="dislike-btn">
                 &#128078; <span id="dislike-count">${formatViews(video.dislikes)}</span>
               </button>
-              <button class="btn-pill" id="share-btn">&#128256; Share</button>
+              <button class="btn-pill" id="share-btn" data-translate="Share">&#128256; Share</button>
             </div>
           </div>
           <div class="watch-description">
@@ -1042,16 +1042,16 @@
             <p>${escapeHtml(video.description || "No description available.")}</p>
           </div>
           <div class="comments-section">
-            <h2 class="section-title">Comments (<span id="comment-count">${video.comments.length}</span>)</h2>
+            <h2 class="section-title" data-translate="Comments">Comments (<span id="comment-count">${video.comments.length}</span>)</h2>
             <div class="comment-form">
-              <textarea id="comment-input" placeholder="Add a comment..."></textarea>
-              <button class="nav-button" id="comment-btn">Comment</button>
+              <textarea id="comment-input" placeholder="Add a comment..." data-translate="Add a comment..."></textarea>
+              <button class="nav-button" id="comment-btn" data-translate="Comment">Comment</button>
             </div>
             <div id="comment-list" class="comment-list"></div>
           </div>
         </div>
         <div class="watch-related-col">
-          <h2 class="aside-heading">Related videos</h2>
+          <h2 class="aside-heading" data-translate="Related videos">Related videos</h2>
           <div id="watch-related" class="video-grid-related"></div>
         </div>
       </section>
@@ -1158,6 +1158,7 @@
       case "watch": renderWatch(main); break;
       default: renderHome(main); break;
     }
+    translateUI(getStored("ominhub_lang", "en"));
   }
 
   if (document.readyState === "loading") {
