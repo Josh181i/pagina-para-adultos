@@ -164,6 +164,11 @@ img{
   left: 0;
   z-index: 30;
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  transform: translateX(-100%);
+}
+
+body.sidebar-open .sidebar {
+  transform: translateX(0);
 }
 
 .sidebar-logo-mini{
@@ -228,7 +233,11 @@ img{
 .main{
   flex:1;
   padding:18px 18px 80px;
-  margin-left:230px;
+  margin-left:0;
+  transition: margin-left 0.2s ease-out;
+}
+
+body.sidebar-open .main {
 }
 
 .app-shell{
@@ -505,6 +514,13 @@ img{
 }
 .form-footer a{
   color:#ff9900;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
 }
 
 /* FOOTER */

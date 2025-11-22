@@ -40,7 +40,7 @@
     BASE_PATH + "/assets/thumbs/t5.jpg",
     BASE_PATH + "/assets/thumbs/t6.jpg"
   ];
-  const VIDEO_SRC = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  const VIDEO_SRC = BASE_PATH + "/assets/videos/sample.mp4";
   const CATEGORIES = ["Recommended", "Trending", "Gaming", "Music", "Tech", "Lifestyle"];
   const TAGS = ["4K", "60fps", "Atmospheric", "Study", "Relax", "Deep Focus", "Loop"];
 
@@ -274,7 +274,23 @@
       "Add a comment...": "Añade un comentario...",
       "Comment": "Comentar",
       "No comments yet.": "Aún no hay comentarios.",
-      "Please log in to manage your channel.": "Por favor, inicia sesión para gestionar tu canal."
+      "Please log in to manage your channel.": "Por favor, inicia sesión para gestionar tu canal.",
+      "Member login": "Iniciar sesión de miembro",
+      "Access your OMINHUB account": "Accede a tu cuenta de OMINHUB",
+      "Log in with Google": "Inicia sesión con Google",
+      "Log in with X": "Inicia sesión con X",
+      "Email": "Email",
+      "Password": "Password",
+      "Log in with email and password": "Inicia sesión con correo electrónico y contraseña",
+      "Don't have an account yet?": "¿Aún no tienes una cuenta?",
+      "Register here": "Registrarse aquí",
+      "Create account": "Crear cuenta",
+      "Join OMINHUB and start uploading your videos.": "Únete a OMINHUB y empieza a subir tus videos.",
+      "Username": "Nombre de usuario",
+      "Your username": "Tu nombre de usuario",
+      "Your email": "tu@ejemplo.com",
+      "Already have an account?": "¿Ya tienes una cuenta?",
+      "Log in": "Iniciar sesión"
     }
   };
 
@@ -328,7 +344,11 @@
     elements.forEach(el => {
       const key = el.getAttribute("data-translate");
       if (translationMap[key]) {
-        el.textContent = translationMap[key];
+        if (el.placeholder) {
+          el.placeholder = translationMap[key];
+        } else {
+          el.textContent = translationMap[key];
+        }
       }
     });
   }
@@ -776,6 +796,18 @@
             <textarea id="up-description" placeholder="A relaxing walk through a forest..."></textarea>
           </div>
           <div class="form-field">
+            <label data-translate="Categories">Categories</label>
+            <div class="checkbox-group">
+              ${CATEGORIES.map(cat => `<label><input type="checkbox" name="up-categories" value="${escapeHtml(cat)}"> ${escapeHtml(cat)}</label>`).join("")}
+            </div>
+          </div>
+          <div class="form-field">
+            <label data-translate="Tags">Tags</label>
+            <div class="checkbox-group">
+              ${TAGS.map(tag => `<label><input type="checkbox" name="up-tags" value="${escapeHtml(tag)}"> ${escapeHtml(tag)}</label>`).join("")}
+            </div>
+          </div>
+          <div class="form-field">
             <label for="up-file" data-translate="Video file">Video file</label>
             <input id="up-file" type="file" accept="video/*" />
           </div>
@@ -807,37 +839,43 @@
         const title = document.getElementById("up-title").value.trim();
         const description = document.getElementById("up-description").value.trim();
         const file = document.getElementById("up-file").files[0];
+        const selectedCategories = Array.from(document.querySelectorAll('input[name="up-categories"]:checked')).map(cb => cb.value);
+        const selectedTags = Array.from(document.querySelectorAll('input[name="up-tags"]:checked')).map(cb => cb.value);
 
-        if (title && description && file) {
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            const newVideo = {
-              id: "up_" + Date.now(),
-              title: title,
-              description: description,
-              category: "Uploaded",
-              duration: "N/A",
-              views: 0,
-              thumb: BASE_PATH + "/assets/thumbs/t6.jpg", // Placeholder thumb
-              src: event.target.result,
-              tags: ["Uploaded", "User Content"],
-              channelName: user.name,
-              channelAvatar: "https://i.pravatar.cc/40?u=" + user.name,
-              subscribers: 0,
-              likes: 0,
-              dislikes: 0,
-              comments: []
-            };
-            const allUploaded = getStored(STORE_KEYS.uploaded, []);
-            allUploaded.unshift(newVideo);
-            setStored(STORE_KEYS.uploaded, allUploaded);
-            VIDEOS.unshift(newVideo);
-            renderMyVideos();
-            info.textContent = "Video uploaded successfully!";
+        if (title && description && file && selectedCategories.length > 0) {
+          const videoUrl = URL.createObjectURL(file);
+          const newVideo = {
+            id: "up_" + Date.now(),
+            title: title,
+            description: description,
+            category: selectedCategories.join(", "),
+            duration: "N/A",
+            views: 0,
+            thumb: BASE_PATH + "/assets/thumbs/t6.jpg", // Placeholder thumb
+            src: videoUrl,
+            tags: selectedTags,
+            channelName: user.name,
+            channelAvatar: "https://i.pravatar.cc/40?u=" + user.name,
+            subscribers: 0,
+            likes: 0,
+            dislikes: 0,
+            comments: []
           };
-          reader.readAsDataURL(file);
+
+          // Note: We are not using localStorage anymore for the video source
+          // as createObjectURL is session-specific.
+          VIDEOS.unshift(newVideo);
+          renderMyVideos();
+          info.textContent = "Video uploaded successfully for this session!";
+
+          // Also update the global VIDEOS array for other pages
+          const allUploaded = getStored(STORE_KEYS.uploaded, []);
+          const metadata = { ...newVideo, src: null };
+          allUploaded.unshift(metadata);
+          setStored(STORE_KEYS.uploaded, allUploaded);
+
         } else {
-          info.textContent = "Please fill all fields.";
+          info.textContent = "Please fill all fields and select at least one category.";
         }
       });
     }
@@ -912,21 +950,21 @@
     main.innerHTML = `
       <section class="section">
         <div class="form-card">
-          <h1>Iniciar sesión de miembro</h1>
-          <p>Accede a tu cuenta de OMINHUB</p>
-          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#4285F4;">Inicia sesión con Google</button>
-          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#1DA1F2;">Inicia sesión con X</button>
+          <h1 data-translate="Member login">Member login</h1>
+          <p data-translate="Access your OMINHUB account">Access your OMINHUB account</p>
+          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#4285F4;" data-translate="Log in with Google">Log in with Google</button>
+          <button class="nav-button" style="width:100%; margin-bottom:10px; background:#1DA1F2;" data-translate="Log in with X">Log in with X</button>
           <div class="form-field">
-            <label for="lg-email">Email</label>
+            <label for="lg-email" data-translate="Email">Email</label>
             <input id="lg-email" type="email" placeholder="you@example.com" value="demo@ominhub.tv" />
           </div>
           <div class="form-field">
-            <label for="lg-pass">Password</label>
+            <label for="lg-pass" data-translate="Password">Password</label>
             <input id="lg-pass" type="password" placeholder="••••••••" value="1234" />
           </div>
-          <button class="nav-button" type="button" id="lg-btn">Inicia sesión con correo electrónico y contraseña</button>
+          <button class="nav-button" type="button" id="lg-btn" data-translate="Log in with email and password">Log in with email and password</button>
           <div class="form-footer">
-            ¿Aún no tienes una cuenta? <a data-nav="register">Registrarse aquí</a>
+            <span data-translate="Don't have an account yet?">Don't have an account yet?</span> <a data-nav="register" data-translate="Register here">Register here</a>
           </div>
         </div>
       </section>
@@ -951,23 +989,23 @@
     main.innerHTML = [
       '<section class="section">',
       '  <div class="form-card">',
-      '    <h1>Crear cuenta</h1>',
-      '    <p>Únete a OMINHUB y empieza a subir tus videos.</p>',
+      '    <h1 data-translate="Create account">Create account</h1>',
+      '    <p data-translate="Join OMINHUB and start uploading your videos.">Join OMINHUB and start uploading your videos.</p>',
       '    <div class="form-field">',
-      '      <label for="rg-name">Nombre de usuario</label>',
-      '      <input id="rg-name" type="text" placeholder="Tu nombre de usuario" />',
+      '      <label for="rg-name" data-translate="Username">Username</label>',
+      '      <input id="rg-name" type="text" data-translate="Your username" placeholder="Your username" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="rg-email">Correo electrónico</label>',
-      '      <input id="rg-email" type="email" placeholder="tu@ejemplo.com" />',
+      '      <label for="rg-email" data-translate="Email">Email</label>',
+      '      <input id="rg-email" type="email" data-translate="Your email" placeholder="you@example.com" />',
       "    </div>",
       '    <div class="form-field">',
-      '      <label for="rg-pass">Contraseña</label>',
+      '      <label for="rg-pass" data-translate="Password">Password</label>',
       '      <input id="rg-pass" type="password" placeholder="••••••••" />',
       "    </div>",
-      '    <button class="nav-button" type="button" id="rg-btn">Crear cuenta</button>',
+      '    <button class="nav-button" type="button" id="rg-btn" data-translate="Create account">Create account</button>',
       '    <div class="form-footer">',
-      '      ¿Ya tienes una cuenta? <a data-nav="login">Iniciar sesión</a>',
+      '      <span data-translate="Already have an account?">Already have an account?</span> <a data-nav="login" data-translate="Log in">Log in</a>',
       '    </div>',
       "  </div>",
       "</section>"
@@ -1138,7 +1176,7 @@
     updateUserActions();
 
     const uploadedVideos = getStored(STORE_KEYS.uploaded, []);
-    VIDEOS.unshift(...uploadedVideos);
+    VIDEOS.unshift(...uploadedVideos.filter(v => v.src)); // Only add videos with a valid src
     const main = document.getElementById("main-content");
     const page = getCurrentPageKey();
 
